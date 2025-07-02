@@ -1,9 +1,11 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Field {
   label: string;
@@ -22,6 +24,81 @@ interface AuthFormProps {
 
 const AuthForm = ({ title, tabs, fields, buttonText, extraText, linkText, linkPath }: AuthFormProps) => {
   const [activeTab, setActiveTab] = useState(tabs[0].toLowerCase());
+  const [formData, setFormData] = useState<Record<string, string>>({});
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  const handleInputChange = (fieldLabel: string, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      [fieldLabel.replace(/\s+/g, '').toLowerCase()]: value
+    }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      const isSignup = buttonText.toLowerCase().includes('sign up');
+      const email = formData.email;
+      const password = formData.password;
+      const fullName = formData.fullname || '';
+      const role = activeTab;
+
+      if (isSignup) {
+        // Sign up
+        const { error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            emailRedirectTo: `${window.location.origin}/`,
+            data: {
+              full_name: fullName,
+              role: role
+            }
+          }
+        });
+
+        if (error) throw error;
+
+        toast({
+          title: "Account created!",
+          description: "Please check your email to verify your account.",
+        });
+      } else {
+        // Sign in
+        const { error } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+
+        if (error) throw error;
+
+        // Redirect based on role
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('user_id', (await supabase.auth.getUser()).data.user?.id)
+          .single();
+
+        if (profile?.role === 'admin') {
+          navigate('/admin-dashboard');
+        } else {
+          navigate('/student-dashboard');
+        }
+      }
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-secondary/20 px-4">
@@ -45,7 +122,7 @@ const AuthForm = ({ title, tabs, fields, buttonText, extraText, linkText, linkPa
 
             {tabs.map((tab) => (
               <TabsContent key={tab} value={tab.toLowerCase()}>
-                <form className="space-y-6">
+                <form onSubmit={handleSubmit} className="space-y-6">
                   {fields.map((field, index) => (
                     <div key={index} className="space-y-2">
                       <Label htmlFor={field.label.replace(/\s+/g, '').toLowerCase()}>
@@ -56,12 +133,21 @@ const AuthForm = ({ title, tabs, fields, buttonText, extraText, linkText, linkPa
                         type={field.type}
                         placeholder={`Enter your ${field.label.toLowerCase()}`}
                         className="h-12 rounded-lg border-border focus:border-primary shadow-soft"
+                        value={formData[field.label.replace(/\s+/g, '').toLowerCase()] || ''}
+                        onChange={(e) => handleInputChange(field.label, e.target.value)}
+                        required
                       />
                     </div>
                   ))}
 
-                  <Button type="submit" variant="hero" size="lg" className="w-full">
-                    {buttonText}
+                  <Button 
+                    type="submit" 
+                    variant="hero" 
+                    size="lg" 
+                    className="w-full"
+                    disabled={loading}
+                  >
+                    {loading ? "Processing..." : buttonText}
                   </Button>
                 </form>
               </TabsContent>

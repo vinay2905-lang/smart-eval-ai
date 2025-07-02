@@ -9,7 +9,145 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      assignments: {
+        Row: {
+          created_at: string
+          created_by: string
+          description: string
+          due_date: string | null
+          id: string
+          instructions: string | null
+          max_points: number | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          description: string
+          due_date?: string | null
+          id?: string
+          instructions?: string | null
+          max_points?: number | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          description?: string
+          due_date?: string | null
+          id?: string
+          instructions?: string | null
+          max_points?: number | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      evaluations: {
+        Row: {
+          evaluated_at: string
+          feedback: string
+          id: string
+          improvements: string[] | null
+          score: number
+          strengths: string[] | null
+          submission_id: string
+        }
+        Insert: {
+          evaluated_at?: string
+          feedback: string
+          id?: string
+          improvements?: string[] | null
+          score: number
+          strengths?: string[] | null
+          submission_id: string
+        }
+        Update: {
+          evaluated_at?: string
+          feedback?: string
+          id?: string
+          improvements?: string[] | null
+          score?: number
+          strengths?: string[] | null
+          submission_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "evaluations_submission_id_fkey"
+            columns: ["submission_id"]
+            isOneToOne: true
+            referencedRelation: "submissions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          full_name: string
+          id: string
+          role: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          full_name: string
+          id?: string
+          role: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          full_name?: string
+          id?: string
+          role?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      submissions: {
+        Row: {
+          assignment_id: string
+          content: string
+          file_urls: string[] | null
+          id: string
+          student_id: string
+          submitted_at: string
+          updated_at: string
+        }
+        Insert: {
+          assignment_id: string
+          content: string
+          file_urls?: string[] | null
+          id?: string
+          student_id: string
+          submitted_at?: string
+          updated_at?: string
+        }
+        Update: {
+          assignment_id?: string
+          content?: string
+          file_urls?: string[] | null
+          id?: string
+          student_id?: string
+          submitted_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "submissions_assignment_id_fkey"
+            columns: ["assignment_id"]
+            isOneToOne: false
+            referencedRelation: "assignments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
