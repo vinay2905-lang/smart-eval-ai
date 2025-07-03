@@ -64,8 +64,8 @@ const AuthForm = ({ title, tabs, fields, buttonText, extraText, linkText, linkPa
         if (error) throw error;
 
         toast({
-          title: "Account created!",
-          description: "Please check your email to verify your account.",
+          title: "Check your email!",
+          description: "We've sent you a confirmation link. Please check your email and click the link to activate your account.",
         });
       } else {
         // Sign in
@@ -90,9 +90,15 @@ const AuthForm = ({ title, tabs, fields, buttonText, extraText, linkText, linkPa
         }
       }
     } catch (error: any) {
+      let errorMessage = error.message;
+      
+      if (error.message.includes('Invalid login credentials')) {
+        errorMessage = "Invalid email or password. If you just signed up, please check your email and confirm your account first.";
+      }
+      
       toast({
         title: "Error",
-        description: error.message,
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
