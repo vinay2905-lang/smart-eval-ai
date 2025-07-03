@@ -51,6 +51,7 @@ export type Database = {
           feedback: string
           id: string
           improvements: string[] | null
+          memorandum_file_url: string | null
           score: number
           strengths: string[] | null
           submission_id: string
@@ -60,6 +61,7 @@ export type Database = {
           feedback: string
           id?: string
           improvements?: string[] | null
+          memorandum_file_url?: string | null
           score: number
           strengths?: string[] | null
           submission_id: string
@@ -69,6 +71,7 @@ export type Database = {
           feedback?: string
           id?: string
           improvements?: string[] | null
+          memorandum_file_url?: string | null
           score?: number
           strengths?: string[] | null
           submission_id?: string
